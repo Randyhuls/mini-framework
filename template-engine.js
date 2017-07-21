@@ -1,6 +1,6 @@
 let App = function(appName) {
 
-    let rootElement = document.querySelector('[data-app]='+appName);
+    let rootElement = document.querySelector('[data-app="'+appName+'"]');
     if (!rootElement) throw 'Could not find root element '+appName;
 
     this.template = function(config) {
@@ -8,17 +8,17 @@ let App = function(appName) {
         // ViewBeforeEnter
 
         let viewBeforeEnter = function() {
-            return new Promise(resolve, reject) {
+            return new Promise((resolve, reject) => {
 
-            }
+            })
         };
 
         // ViewDidLoad
 
         let viewDidLoad = function() {
-            return new Promise(resolve, reject) {
+            return new Promise((resolve, reject) => {
 
-            }
+            })
         };
 
         getHTMLFileFromDirectory(rootElement, config.path).then(
