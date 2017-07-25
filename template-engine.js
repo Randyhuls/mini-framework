@@ -24,6 +24,8 @@ let Route = function() {
 
     this.set = function(_, rootElement) {
 
+        _.route = _.route.slice(-1) == '/' ? _.route : _.route+'/';
+
         if (!regex.test(_.route)) throw _.route + ' is not a valid URL';
 
         if (regex.exec(_.route)[3]) this.parameter = regex.exec(_.route)[3];
@@ -37,6 +39,7 @@ let Route = function() {
     }
 
     this.getURIFromString = function(URL) {
+        URL = URL.slice(-1) == '/' ? URL : URL+'/';
 
         let URI = '';
 
