@@ -24,7 +24,7 @@ let home = app.template({
 
 let user = app.template({
         templateURL: 'user.template.html',
-        route: '#home/user/',
+        route: '#user/:id',
         hook: function() {
             this.viewBeforeLoad = function() {
                 console.log('viewBeforeLoad');

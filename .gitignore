@@ -1,1 +1,15 @@
+// IDE
 .idea/*
+
+// Raw source files
+src/*
+
+// Task managers
+webpack/*
+
+// Modules
+node_modules/*
+
+// Example files
+app.js
+*.html

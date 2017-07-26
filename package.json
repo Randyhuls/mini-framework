@@ -1,0 +1,22 @@
+{
+  "name": "mini",
+  "version": "1.0.0",
+  "description": "Mini JavaScript framework for client-side template rendering and routing",
+  "main": "mini.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Randyhuls/mini-framework.git"
+  },
+  "author": "R.C.B. Huls",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Randyhuls/mini-framework/issues"
+  },
+  "homepage": "https://github.com/Randyhuls/mini-framework#readme",
+  "devDependencies": {
+    "webpack": "^3.4.0"
+  }
+}
