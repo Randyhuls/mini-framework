@@ -196,7 +196,8 @@ var loadTemplate = function loadTemplate(_) {
                 // Clear target element before injecting new template
                 _.rootElement.innerHTML = null;
 
-                // Parse the template for bracket notations before resolving
+                // Parse the template for bracket notations before resolving,
+                // and provide data declared in the component
                 parseTemplate(_.data, template).then(function (template) {
                     return resolve(template);
                 }, function (err) {
@@ -227,8 +228,6 @@ var parseTemplate = function parseTemplate(data, template) {
 
         var matches = [];
         var match = void 0;
-
-        console.log(data);
 
         var nrOfMatches = _template.match(regex).length;
 
