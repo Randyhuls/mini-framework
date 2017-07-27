@@ -166,7 +166,7 @@ var Router = function Router() {
 
         if (previousRoute) {
             self.routes.pop();
-            window.location.hash = previousRoute.URI;
+            window.location.href = previousRoute.URI;
         }
     };
 
@@ -186,6 +186,7 @@ var loadTemplate = function loadTemplate(_) {
         http.onload = function () {
             if (this.status >= 200 && this.status < 300) {
 
+                // TODO: Maybe parsing only has to happen in parseTemplate function???
                 var parse = new DOMParser();
                 var templateDocument = parse.parseFromString(this.responseText, 'text/html').documentElement;
                 var template = templateDocument.getElementsByTagName('body')[0].firstElementChild;
@@ -196,7 +197,7 @@ var loadTemplate = function loadTemplate(_) {
                 _.rootElement.innerHTML = null;
 
                 // Parse the template for bracket notations before resolving
-                parseTemplate(_.component, template).then(function (template) {
+                parseTemplate(_.data, template).then(function (template) {
                     return resolve(template);
                 }, function (err) {
                     throw err;
@@ -215,10 +216,10 @@ var loadTemplate = function loadTemplate(_) {
     });
 };
 
-var parseTemplate = function parseTemplate(component, template) {
+var parseTemplate = function parseTemplate(data, template) {
 
     return new Promise(function (resolve, reject) {
-        var regex = /{{ ?(\w*) ?}}/g;
+        var regex = /{{ ?([a-zA-Z0-9_.$@]*) ?}}/g;
         var _template = template.outerHTML;
 
         // If there is nothing to parse, return the unparsed template
@@ -227,12 +228,7 @@ var parseTemplate = function parseTemplate(component, template) {
         var matches = [];
         var match = void 0;
 
-        // TODO: Get objects from component for the real values
-
-        var title = 'Hallo';
-        var subTitle = 'Dag!';
-
-        // TODO: ^
+        console.log(data);
 
         var nrOfMatches = _template.match(regex).length;
 
@@ -243,8 +239,9 @@ var parseTemplate = function parseTemplate(component, template) {
 
                 for (var j = 0; j < matches.length; j++) {
 
+                    // Evaluate the strings to access the data object properties
                     var valueWithBrackets = matches[j][0];
-                    var value = eval(matches[j][1]);
+                    var value = eval('data.' + matches[j][1]);
 
                     _template = _template.replace(valueWithBrackets, value);
                 }

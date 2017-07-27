@@ -15,6 +15,10 @@ let home = app.template({
 
             return this;
         },
+        data: {
+            title: {  test: { lol: 'hiiii'}},
+            subTitle: 'Bye'
+        },
         component: function(route, data) {
             console.log('component', route);
             console.log('data', data);
