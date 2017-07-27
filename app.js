@@ -1,4 +1,5 @@
 let app = new App('MyApp');
+app.router.rootPage = '#home/';
 
 let home = app.template({
         templateURL: 'home.template.html',
@@ -43,3 +44,5 @@ let user = app.template({
     }
 
 );
+
+app.init();
