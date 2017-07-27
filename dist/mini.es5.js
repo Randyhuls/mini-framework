@@ -10,14 +10,30 @@ var App = function App(appName) {
     var rootElement = document.querySelector('[data-app="' + appName + '"]');
     if (!rootElement) throw 'Could not find root element ' + appName;
 
-    var router = new Router();
+    var templates = [];
+
+    this.title = appName;
+
+    this.router = new Router();
+
+    this.init = function () {
+
+        var route = window.location.hash ? window.location.href : this.router.rootPage;
+
+        for (var i = 0; i < templates.length; i++) {
+            this.router.set(templates[i], rootElement);
+        }
+
+        // Initiate routing based on start URL
+        this.router.go(route);
+    };
 
     this.template = function (_) {
-
         if (!_.route) throw 'No route was defined for this template';
-
-        router.set(_, rootElement);
+        templates.push(_);
     };
+
+    this.setRootPage = function (URI) {};
 };
 
 var Route = function Route() {
@@ -54,6 +70,7 @@ var Router = function Router() {
 
     var self = this;
 
+    this.rootPage = '#';
     this.routes = [];
     this.currentRoute = null;
     this.history = [];
@@ -64,32 +81,6 @@ var Router = function Router() {
         route.set(_, rootElement);
 
         self.routes.push(route);
-
-        // On changing the hash navigate
-        window.onhashchange = function (e) {
-
-            var URI = self.getURIFromString(e.newURL);
-            var data = {};
-
-            for (var i = 0; i < self.routes.length; i++) {
-
-                if (self.routes[i].URI == URI) {
-
-                    var _route = self.routes[i];
-
-                    if (_route.parameter) data = self.getDataFromURI(e.newURL, _route);
-
-                    self.currentRoute = _route;
-                    self.history.push(_route);
-
-                    self.go(URI, data).then(function (result) {
-                        return console.log(result);
-                    }, function (err) {
-                        console.log(err);
-                    });
-                }
-            }
-        };
     };
 
     this.getDataFromURI = function (URL, route) {
@@ -116,17 +107,17 @@ var Router = function Router() {
         return regex.exec(URL)[1];
     };
 
-    this.go = function (URI, data) {
+    this.route = function (URI, data) {
         return new Promise(function (resolve, reject) {
 
             var _ = self.currentRoute.component;
 
-            loadTemplate(_.rootElement, _.templateURL).then(function (template) {
+            loadTemplate(_).then(function (template) {
                 var hook = _.hook && _typeof(_.hook()) == 'object' ? _.hook() : {};
 
                 // Initiate actions before loading the view; may be overridden with hooks
                 if (hook.viewBeforeLoad) hook.viewBeforeLoad();
-
+                console.log(template);
                 // Insert template in app route element
                 _.rootElement.insertBefore(template, _.rootElement.firstElementChild);
 
@@ -143,19 +134,50 @@ var Router = function Router() {
         });
     };
 
+    this.go = function (URL) {
+        console.log('route!');
+
+        var URI = self.getURIFromString(URL);
+        var data = {};
+
+        for (var i = 0; i < self.routes.length; i++) {
+
+            if (self.routes[i].URI == URI) {
+
+                var route = self.routes[i];
+
+                if (route.parameter) data = self.getDataFromURI(URL, route);
+
+                self.currentRoute = route;
+                self.history.push(route);
+
+                self.route(URI, data).then(function (result) {
+                    return console.log(result);
+                }, function (err) {
+                    console.log(err);
+                });
+            }
+        }
+    };
+
     this.back = function () {
 
         var previousRoute = self.routes[self.routes.length - 1];
 
         if (previousRoute) {
             self.routes.pop();
-            window.history.back();
+            window.location.hash = previousRoute.URI;
         }
+    };
+
+    // On changing the hash navigate to different view
+    window.onhashchange = function (e) {
+        self.go(e.newURL);
     };
 };
 
 // Methods
-var loadTemplate = function loadTemplate(rootElement, path) {
+var loadTemplate = function loadTemplate(_) {
 
     return new Promise(function (resolve, reject) {
 
@@ -171,9 +193,14 @@ var loadTemplate = function loadTemplate(rootElement, path) {
                 if (!template) return;
 
                 // Clear target element before injecting new template
-                rootElement.innerHTML = null;
+                _.rootElement.innerHTML = null;
 
-                resolve(template);
+                // Parse the template for bracket notations before resolving
+                parseTemplate(_.component, template).then(function (template) {
+                    return resolve(template);
+                }, function (err) {
+                    throw err;
+                });
             } else {
                 reject(this.response);
             }
@@ -183,7 +210,53 @@ var loadTemplate = function loadTemplate(rootElement, path) {
             reject(this.response);
         };
 
-        http.open('GET', path);
+        http.open('GET', _.templateURL);
         http.send();
+    });
+};
+
+var parseTemplate = function parseTemplate(component, template) {
+
+    return new Promise(function (resolve, reject) {
+        var regex = /{{ ?(\w*) ?}}/g;
+        var _template = template.outerHTML;
+
+        // If there is nothing to parse, return the unparsed template
+        if (!regex.test(_template)) resolve(template);
+
+        var matches = [];
+        var match = void 0;
+
+        // TODO: Get objects from component for the real values
+
+        var title = 'Hallo';
+        var subTitle = 'Dag!';
+
+        // TODO: ^
+
+        var nrOfMatches = _template.match(regex).length;
+
+        for (var i = 0; match = regex.exec(_template); i++) {
+            matches.push(match);
+
+            if (nrOfMatches == matches.length) {
+
+                for (var j = 0; j < matches.length; j++) {
+
+                    var valueWithBrackets = matches[j][0];
+                    var value = eval(matches[j][1]);
+
+                    _template = _template.replace(valueWithBrackets, value);
+                }
+
+                var parse = new DOMParser();
+                var parsedTemplateDocument = parse.parseFromString(_template, 'text/html').documentElement;
+                var parsedTemplate = parsedTemplateDocument.getElementsByTagName('body')[0].firstElementChild;
+
+                resolve(parsedTemplate);
+            }
+        }
+
+        return template;
     });
 };
