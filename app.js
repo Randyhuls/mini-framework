@@ -1,7 +1,7 @@
 let app = new App('MyApp');
 app.router.rootPage = '#home/';
 
-let home = app.template({
+let home = new app.component({
         templateURL: 'home.template.html',
         route: '#home/',
         hook: function() {
@@ -19,15 +19,16 @@ let home = app.template({
             title: {  test: { lol: 'hiiii'}},
             subTitle: 'Bye'
         },
-        component: function(route, data) {
-            console.log('component', route);
-            console.log('data', data);
+        controller: function(component, params) {
+            console.log('params', params);
+
+            console.log(component);
         }
     }
 
 );
 
-let user = app.template({
+let user = new app.component({
         templateURL: 'user.template.html',
         route: '#user/:id',
         hook: function() {
@@ -41,9 +42,15 @@ let user = app.template({
 
             return this;
         },
-        component: function(route, data) {
-            console.log('component', route);
-            console.log('data', data);
+        data: {
+          userId: null
+        },
+        controller: function(component, params) {
+            this.data.data.userId = 1;
+
+            // The view that is required is the RAW view with bracket elements, otherwise parseTemplate wont run
+            component.updateView(this.data);
+
         }
     }
 
