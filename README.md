@@ -33,7 +33,7 @@ Components are the building blocks that combine templates and logic.
 By calling the `component` method on the `App` object a new `Component` object can be instantiated.
 
 ### App.component(configuration: object)
-The `configuration` object takes atleast the following properties:
+The `configuration` object takes atleast a `templateURL` and `route` property.
 ```javascript
 myApp.component({
   templateURL: 'url/to/your/template.html',
@@ -45,14 +45,16 @@ myApp.component({
 The `controller` property takes a function with the parameters `component` and `params`. 
 
 ```javascript
-myApp.component({
+let myPage = myApp.component({
   templateURL: 'url/to/your/template.html',
   route: '#myPage/',
   controller: function(component, params) {
   
-    doSomething = function() {
-      console.log('This will do something');
-      
+    doSomething = function(what) {
+      console.log('This will do something' + what);
+    }
+    
+    doSomething('cool');
   }  
 })
 ```
@@ -60,3 +62,46 @@ myApp.component({
 `component`: Will give you access to all properties that are part of the `component`. 
 
 `params`: Will give you any data passed through the current route.
+
+#### Data
+
+The `data` property is where you define all data available to your templates.
+
+```javascript
+let myPage = myApp.component({
+  templateURL: 'url/to/your/template.html',
+  route: '#myPage/',
+  data: {
+    myTitle: 'My Awesome app title',
+    mysubTitle: 'Made with mini',
+    myThing: someFunctionReturningData()
+  },
+  controller: function(component, params) {
+    ...
+  }  
+```
+
+#### Hook
+
+### Component
+a `Component` object is instantiated after calling the app's `component` method.
+
+#### Methods
+
+##### updateView()
+
+```javascript
+  let myPage = myApp.component({
+  templateURL: 'url/to/your/template.html',
+  route: '#myPage/',
+  data: {
+    myTitle: 'My first title'
+  },
+  controller: function(component, params) {
+    // Access component's data
+    this.data.data.myTitle = 'My second title'; // or component.data.data.myTitle = 'My second title';
+    
+    // Update the view
+    this.updateView();
+  }  
+```
