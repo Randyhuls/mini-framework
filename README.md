@@ -6,6 +6,7 @@ Mini JavaScript frameworking allowing client-side routing and template rendering
 ### Table of contents
 1. Introduction
 2. Components
+..
 3. Controllers
 4. Routing
 5. Template rendering
@@ -27,10 +28,18 @@ A matching selector will then be sought based on the `data-app` attribute. This 
 </main>
 ```
 
+```javascript
+let myApp = new App('MyApp');
+
+// My components
+
+myApp.init();
+```
+
 ## Components
 
 Components are the building blocks that combine templates and logic.
-By calling the `component` method on the `App` object a new `Component` object can be instantiated.
+By calling the `component` method on the `App` object a new `Component` object can be instantiated by passing it a configuration object.
 
 ### App.component(configuration: object)
 The `configuration` object takes atleast a `templateURL` and `route` property.
@@ -38,7 +47,7 @@ The `configuration` object takes atleast a `templateURL` and `route` property.
 myApp.component({
   templateURL: 'url/to/your/template.html',
   route: '#myPage/'
-})
+});
 ```
 
 #### Controller
@@ -56,7 +65,7 @@ let myPage = myApp.component({
     
     doSomething('cool');
   }  
-})
+});
 ```
 ##### Parameters
 `component`: Will give you access to all properties that are part of the `component`. 
@@ -78,10 +87,45 @@ let myPage = myApp.component({
   },
   controller: function(component, params) {
     ...
-  }  
+  }
+}):
 ```
 
 #### Hook
+
+Hooks provides means to  initiate function right before or right after the view is loaded - but always before any functions running inside the `controller`. It is required that you return the methods by returning this;
+
+#### viewBeforeLoad
+Loads before the template is injected into the DOM
+
+
+#### viewDidLoad
+Loads after the template is injected into the DOM
+
+```javascript
+
+let myPage = myApp.component({
+    templateURL: 'url/to/your/template.html',
+    route: '#myPage/',
+    data: {
+      ...
+    },
+    hooks: function() {
+      this.viewBeforeLoad = function() {
+        console.log('Do something before the view has loaded');
+      },
+      
+      this.viewDidLoad = function() {
+        console.log('Do something right after the view has loaded');
+      }
+      
+      return this;
+    }
+    controller: function(component, params) {
+      ...
+    }
+ });
+```
 
 ### Component
 a `Component` object is instantiated after calling the app's `component` method.
@@ -92,16 +136,17 @@ a `Component` object is instantiated after calling the app's `component` method.
 
 ```javascript
   let myPage = myApp.component({
-  templateURL: 'url/to/your/template.html',
-  route: '#myPage/',
-  data: {
-    myTitle: 'My first title'
-  },
-  controller: function(component, params) {
-    // Access component's data
-    this.data.data.myTitle = 'My second title'; // or component.data.data.myTitle = 'My second title';
-    
-    // Update the view
-    this.updateView();
-  }  
+    templateURL: 'url/to/your/template.html',
+    route: '#myPage/',
+    data: {
+      myTitle: 'My first title'
+    },
+    controller: function(component, params) {
+      // Access component's data
+      this.data.data.myTitle = 'My second title'; // or component.data.data.myTitle = 'My second title';
+
+      // Update the view
+      this.updateView();
+    }
+  });
 ```
