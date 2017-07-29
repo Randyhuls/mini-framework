@@ -5,65 +5,85 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 // Classes
+var Component = function Component(config) {
+
+    if (!config.templateURL || !config.route) throw 'Your component requires atleast a [templateURL] and [route]';
+
+    this.templateURL = config.templateURL;
+    this.selector = config.selector;
+    this.route = new Route(config.route);
+    this.data = new Data(config.data) || {};
+    this.hook = config.hook || null;
+    this.controller = config.controller || null;
+    this._rawTemplate = null;
+
+    this.updateView = function (data) {
+        var _this = this;
+
+        return parseTemplate(this, this._rawTemplate.outerHTML).then(function (updatedTemplate) {
+            // Clear the previous template
+            _this.selector.innerHTML = null;
+
+            // Insert updated template in selector element
+            _this.selector.insertBefore(updatedTemplate, _this.selector.firstElementChild);
+        }, function (err) {
+            console.log('Error updating view', err);
+        });
+    };
+};
+
 var App = function App(appName) {
+
+    var self = this;
 
     var rootElement = document.querySelector('[data-app="' + appName + '"]');
     if (!rootElement) throw 'Could not find root element ' + appName;
 
-    var templates = [];
-
+    this.components = [];
     this.title = appName;
-
     this.router = new Router();
 
     this.init = function () {
-
+        // Current URL the user navigated to
         var route = window.location.hash ? window.location.href : this.router.rootPage;
 
-        for (var i = 0; i < templates.length; i++) {
-            this.router.set(templates[i], rootElement);
-        }
+        // Give router access to available components
+        this.router.set(this.components);
 
         // Initiate routing based on start URL
-        this.router.go(route);
+        this.router.getComponentByRoute(route);
     };
 
-    this.template = function (_) {
-        if (!_.route) throw 'No route was defined for this template';
-        templates.push(_);
-    };
+    this.component = function (_) {
 
-    this.setRootPage = function (URI) {};
+        // If no selector was defined for the component, use the rootElement
+        if (!_.selector) _.selector = rootElement;
+
+        self.components.push(new Component(_));
+    };
 };
 
-var Route = function Route() {
+var Route = function Route(URI) {
 
     this.URI = null;
     this.parameter = null;
-    this.component = null;
 
-    this.set = function (_, rootElement) {
+    var regex = /(#\w*\/)(\w*.\/){0,}(\:\w*\/?)?/;
 
-        var regex = /(#\w*\/)(\w*.\/){0,}(\:\w*\/?)?/;
+    URI = URI.slice(-1) == '/' ? URI : URI + '/';
 
-        _.route = _.route.slice(-1) == '/' ? _.route : _.route + '/';
+    if (!regex.test(URI)) throw URI + ' is not a valid URL';
 
-        if (!regex.test(_.route)) throw _.route + ' is not a valid URL';
+    if (regex.exec(URI)[3]) {
+        var parameter = regex.exec(URI)[3];
+        parameter = parameter.substring(1, parameter.length - 1);
 
-        if (regex.exec(_.route)[3]) {
-            var parameter = regex.exec(_.route)[3];
-            parameter = parameter.substring(1, parameter.length - 1);
+        this.parameter = parameter;
+    }
 
-            this.parameter = parameter;
-        }
+    this.URI = regex.exec(URI)[1];
 
-        this.URI = regex.exec(_.route)[1];
-
-        if (regex.exec(_.route)[2]) this.URI += regex.exec(_.route)[2];
-
-        this.component = _;
-        this.component['rootElement'] = rootElement;
-    };
+    if (regex.exec(URI)[2]) this.URI += regex.exec(URI)[2];
 };
 
 var Router = function Router() {
@@ -71,16 +91,12 @@ var Router = function Router() {
     var self = this;
 
     this.rootPage = '#';
-    this.routes = [];
+    this.components = null; // array
     this.currentRoute = null;
     this.history = [];
 
-    this.set = function (_, rootElement) {
-
-        var route = new Route();
-        route.set(_, rootElement);
-
-        self.routes.push(route);
+    this.set = function (_) {
+        self.components = _;
     };
 
     this.getDataFromURI = function (URL, route) {
@@ -107,51 +123,53 @@ var Router = function Router() {
         return regex.exec(URL)[1];
     };
 
-    this.route = function (URI, data) {
+    this.render = function (component, params) {
         return new Promise(function (resolve, reject) {
 
-            var _ = self.currentRoute.component;
+            // Component
+            var _ = component;
 
             loadTemplate(_).then(function (template) {
                 var hook = _.hook && _typeof(_.hook()) == 'object' ? _.hook() : {};
 
                 // Initiate actions before loading the view; may be overridden with hooks
                 if (hook.viewBeforeLoad) hook.viewBeforeLoad();
-                console.log(template);
-                // Insert template in app route element
-                _.rootElement.insertBefore(template, _.rootElement.firstElementChild);
+
+                // Insert template in app selector element
+                _.selector.insertBefore(template, _.selector.firstElementChild);
 
                 // Initiate actions after loading the view; may be overridden with hooks
                 if (hook.viewDidLoad) hook.viewDidLoad();
 
-                // Run component function
-                if (_.component) _.component(_, data);
+                // Run controller function
+                if (_.controller) _.controller(_, params);
 
-                resolve('Navigated to ' + URI + ' with ' + JSON.stringify(data));
+                resolve('Navigated to ' + _.route.URI + ' with ' + JSON.stringify(params));
             }, function (err) {
-                return reject('Error loading template:' + err);
+                return reject('Error loading template: ' + err);
             });
         });
     };
 
-    this.go = function (URL) {
-        console.log('route!');
+    this.getComponentByRoute = function (URL) {
 
         var URI = self.getURIFromString(URL);
         var data = {};
 
-        for (var i = 0; i < self.routes.length; i++) {
+        for (var i = 0; i < self.components.length; i++) {
 
-            if (self.routes[i].URI == URI) {
+            var routeURI = self.components[i].route.URI;
 
-                var route = self.routes[i];
+            if (routeURI == URI) {
+
+                var route = self.components[i].route;
 
                 if (route.parameter) data = self.getDataFromURI(URL, route);
 
                 self.currentRoute = route;
                 self.history.push(route);
 
-                self.route(URI, data).then(function (result) {
+                self.render(self.components[i], data).then(function (result) {
                     return console.log(result);
                 }, function (err) {
                     console.log(err);
@@ -172,12 +190,17 @@ var Router = function Router() {
 
     // On changing the hash navigate to different view
     window.onhashchange = function (e) {
-        self.go(e.newURL);
+        self.getComponentByRoute(e.newURL);
     };
 };
 
+var Data = function Data(data) {
+
+    this.data = data;
+};
+
 // Methods
-var loadTemplate = function loadTemplate(_) {
+var loadTemplate = function loadTemplate(component) {
 
     return new Promise(function (resolve, reject) {
 
@@ -186,19 +209,12 @@ var loadTemplate = function loadTemplate(_) {
         http.onload = function () {
             if (this.status >= 200 && this.status < 300) {
 
-                // TODO: Maybe parsing only has to happen in parseTemplate function???
-                var parse = new DOMParser();
-                var templateDocument = parse.parseFromString(this.responseText, 'text/html').documentElement;
-                var template = templateDocument.getElementsByTagName('body')[0].firstElementChild;
-
-                if (!template) return;
-
                 // Clear target element before injecting new template
-                _.rootElement.innerHTML = null;
+                component.selector.innerHTML = null;
 
-                // Parse the template for bracket notations before resolving,
-                // and provide data declared in the component
-                parseTemplate(_.data, template).then(function (template) {
+                // Parse the template (for bracket notations) before resolving,
+                // and provide data declared in the component to render the proper content
+                parseTemplate(component, this.responseText).then(function (template) {
                     return resolve(template);
                 }, function (err) {
                     throw err;
@@ -212,20 +228,32 @@ var loadTemplate = function loadTemplate(_) {
             reject(this.response);
         };
 
-        http.open('GET', _.templateURL);
+        http.open('GET', component.templateURL);
         http.send();
     });
 };
 
-var parseTemplate = function parseTemplate(data, template) {
+// TODO: Consider partial parsing of template, to support rendering seperate elements as opposed to the whole template
+// TODO: This will require using attributes to target the right elements
+var parseTemplate = function parseTemplate(_, _template) {
 
     return new Promise(function (resolve, reject) {
         var regex = /{{ ?([a-zA-Z0-9_.$@]*) ?}}/g;
-        var _template = template.outerHTML;
+
+        var parse = new DOMParser();
+        var templateDocument = parse.parseFromString(_template, 'text/html').documentElement;
+        var template = templateDocument.getElementsByTagName('body')[0].firstElementChild;
+
+        // Assign the raw template to the component to allow for view updates
+        _._rawTemplate = template;
+
+        // Return if the template does not have any content
+        if (!template) reject('Template is not of type HTML or does not contain any elements');
 
         // If there is nothing to parse, return the unparsed template
         if (!regex.test(_template)) resolve(template);
 
+        var data = _.data.data;
         var matches = [];
         var match = void 0;
 
@@ -240,12 +268,12 @@ var parseTemplate = function parseTemplate(data, template) {
 
                     // Evaluate the strings to access the data object properties
                     var valueWithBrackets = matches[j][0];
-                    var value = eval('data.' + matches[j][1]);
+                    var value = eval('data.' + matches[j][1]) || eval('data["' + matches[j][1] + '"]');
+                    console.log(value);
 
                     _template = _template.replace(valueWithBrackets, value);
                 }
 
-                var parse = new DOMParser();
                 var parsedTemplateDocument = parse.parseFromString(_template, 'text/html').documentElement;
                 var parsedTemplate = parsedTemplateDocument.getElementsByTagName('body')[0].firstElementChild;
 
