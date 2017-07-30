@@ -11,7 +11,7 @@ let Component = function(config) {
     this.controller = config.controller || null;
     this._rawTemplate = null;
 
-    this.updateView = function(data) {
+    this.updateView = function() {
         return parseTemplate(this, this._rawTemplate.outerHTML).then(
             (updatedTemplate) => {
                 // Clear the previous template
@@ -51,7 +51,7 @@ let App = function(appName) {
     this.component = function(_) {
 
         // If no selector was defined for the component, use the rootElement
-        if (!_.selector) _.selector = rootElement;
+        _.selector = !_.selector ? rootElement : document.querySelector(_.selector);
 
         self.components.push(new Component(_));
     };
@@ -163,14 +163,19 @@ let Router = function() {
 
                 let route = self.components[i].route;
 
+                // Add the current hash including any parameters to the history
+                let historyRoute = window.location.hash;
+
                 if (route.parameter) data = self.getDataFromURI(URL, route);
 
                 self.currentRoute = route;
-                self.history.push(route);
+
+                // Add the current route to the history, but only if it wasn't the lastly navigated page
+                if (self.history[self.history.length-1] !== historyRoute) self.history.push(historyRoute);
 
                 self.render(self.components[i], data).then(
                     (result) => console.log(result),
-                    (err) => { console.log(err) }
+                    (err) => console.log(err)
                 );
 
             }
@@ -180,11 +185,12 @@ let Router = function() {
 
     this.back = function() {
 
-        let previousRoute = self.routes[self.routes.length-1];
+        let previousComponent = self.history[self.history.length-2];
 
-        if (previousRoute) {
-            self.routes.pop();
-            window.location.href = previousRoute.URI;
+        if (previousComponent) {
+            self.history.pop();
+            window.location.href = previousComponent;
+            console.log(window.location);
         }
     };
 
@@ -271,7 +277,6 @@ let parseTemplate = function(_, _template) {
                     // Evaluate the strings to access the data object properties
                     let valueWithBrackets = matches[j][0];
                     let value = eval('data.' + matches[j][1]) || eval('data["'+ matches[j][1] +'"]');
-                    console.log(value);
 
                     _template = _template.replace(valueWithBrackets, value);
                 }

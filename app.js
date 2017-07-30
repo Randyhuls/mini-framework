@@ -31,6 +31,7 @@ let home = new app.component({
 let user = new app.component({
         templateURL: 'user.template.html',
         route: '#user/:id',
+        selector: '',
         hook: function() {
             this.viewBeforeLoad = function() {
                 console.log('viewBeforeLoad');
@@ -49,7 +50,12 @@ let user = new app.component({
             this.data.data.userId = 1;
 
             // The view that is required is the RAW view with bracket elements, otherwise parseTemplate wont run
-            component.updateView(this.data);
+            this.updateView(this.data);
+
+            document.body.onclick = function() {
+                console.log('go back');
+                app.router.back();
+            }
 
         }
     }
