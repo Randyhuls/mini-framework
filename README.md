@@ -1,7 +1,9 @@
 # mini-framework
 Mini JavaScript frameworking allowing client-side routing and template rendering
 
-## [ WIP ]
+***
+## [ WIP ] - This documentation is still a work in progress
+***
 
 ### Table of contents
 1. [Introduction](#introduction)
@@ -9,7 +11,7 @@ Mini JavaScript frameworking allowing client-side routing and template rendering
 ⋅⋅⋅App.component(configuration: object)
 ⋅⋅⋅Component
 3. [Routing](#routing)
-4. [Template rendering](template-rendering)
+4. [Templates](#templates)
 
 ## Introduction
 
@@ -136,7 +138,7 @@ a `Component` object is instantiated after calling the app's `component` method.
 
 #### Methods
 
-##### updateView()
+##### Component.updateView()
 
 ```javascript
   let myPage = myApp.component({
@@ -155,5 +157,59 @@ a `Component` object is instantiated after calling the app's `component` method.
   });
 ```
 ## Routing
+All routing is handled by the components. You can access the router and routes through a `Component` instance.
 
-## Template rendering
+### App.router
+The router is instantiated when creating an `App`. A `Router` object has the following properties and methods:
+
+```javascript
+let myApp = new App('MyApp');
+let router = myApp.router;
+```
+
+#### Properties
+##### rootPage (string)
+The URI hash of the page you wish to be accessed upon launch
+
+##### components (array:[Component])
+Returns an array of all components
+
+##### history (array:[string])
+Returns an array of all previously accessed route in chronological order
+
+#### Methods
+##### Router.set(array:[Component])
+Used to set up your components; this is done automatically when instantiating an `App`. Can be overridden using this method if needed.
+
+##### Router.getDataFromURI(URL: string, route:Route)
+Takes an URL and a route to compare against for valid data. Returns any data found in the href.
+
+##### Router.getURIFromString(URL: string)
+Takes an URL and returns a proper hash.
+
+##### Router.back()
+Navigate to the previous page
+
+## Templates
+Templates use double curly bracket notation to reference properties defined in a `Component`'s `data` object. Double curly brackets may be used with or without single spaces.
+
+```html
+<div>
+  <h1>The title of my app is {{ title }}</h1>
+  <h2>And the subtitle of my app is {{subTitle}}</h2>
+</div>
+```
+
+```javascript
+  let myPage = myApp.component({
+    templateURL: 'url/to/your/template.html',
+    route: '#myPage/',
+    data: {
+      title: 'My cool app',
+      subTitle: 'The best there ever was'
+    },
+    controller: function(component, params) {
+      ...
+    }
+  });
+```
