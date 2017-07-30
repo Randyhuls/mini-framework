@@ -4,7 +4,7 @@ Mini JavaScript frameworking allowing client-side routing and template rendering
 ## [ WIP ]
 
 ### Table of contents
-1. Introduction
+1. [Introduction](#Introduction)
 2. Components
 ⋅⋅⋅App.component(configuration: object)
 ⋅⋅⋅Component
