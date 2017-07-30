@@ -1,5 +1,5 @@
 # mini-framework
-Mini JavaScript frameworking allowing client-side routing and template rendering
+Mini JavaScript framework allowing client-side routing and template rendering
 
 ***
 ## [ WIP ] - This documentation is still a work in progress
