@@ -128,6 +128,11 @@ let myPage = myApp.component({
  });
 ```
 
+##### Parameters
+`component`: Will give you access to all properties that are part of the `component`. 
+
+`params`: Will give you any data passed through the current route.
+
 ### Component
 a `Component` object is instantiated after calling the app's `component` method.
 
