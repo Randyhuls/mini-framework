@@ -16,13 +16,11 @@ let home = new app.component({
             return this;
         },
         data: {
-            title: {  test: { lol: 'hiiii'}},
-            subTitle: 'Bye'
+            title: 'Home page',
+            subTitle: 'Some test subtitle'
         },
         controller: function(component, params) {
-            console.log('params', params);
 
-            console.log(component);
         }
     }
 
@@ -33,29 +31,22 @@ let user = new app.component({
         route: '#user/:id',
         selector: '',
         hook: function() {
-            this.viewBeforeLoad = function() {
+            this.viewBeforeLoad = function(component, params) {
                 console.log('viewBeforeLoad');
+
+                component.data.data = {
+                    userId: params.id
+                };
             };
 
-            this.viewDidLoad = function() {
+            this.viewDidLoad = function(component, params) {
                 console.log('viewDidLoad');
             };
 
             return this;
         },
-        data: {
-          userId: null
-        },
         controller: function(component, params) {
-            this.data.data.userId = 1;
 
-            // The view that is required is the RAW view with bracket elements, otherwise parseTemplate wont run
-            this.updateView(this.data);
-
-            document.body.onclick = function() {
-                console.log('go back');
-                app.router.back();
-            }
 
         }
     }

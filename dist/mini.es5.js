@@ -129,17 +129,18 @@ var Router = function Router() {
             // Component
             var _ = component;
 
-            loadTemplate(_).then(function (template) {
-                var hook = _.hook && _typeof(_.hook()) == 'object' ? _.hook() : {};
+            var hook = _.hook && _typeof(_.hook()) == 'object' ? _.hook() : {};
 
-                // Initiate actions before loading the view; may be overridden with hooks
-                if (hook.viewBeforeLoad) hook.viewBeforeLoad();
+            // Initiate actions before loading the view; may be overridden with hooks
+            if (hook.viewBeforeLoad) hook.viewBeforeLoad(_, params);
+
+            loadTemplate(_).then(function (template) {
 
                 // Insert template in app selector element
                 _.selector.insertBefore(template, _.selector.firstElementChild);
 
                 // Initiate actions after loading the view; may be overridden with hooks
-                if (hook.viewDidLoad) hook.viewDidLoad();
+                if (hook.viewDidLoad) hook.viewDidLoad(_, params);
 
                 // Run controller function
                 if (_.controller) _.controller(_, params);
