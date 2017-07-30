@@ -2,7 +2,7 @@
 Mini JavaScript framework allowing client-side routing and template rendering
 
 ***
-## [ WIP ] - This documentation is still a work in progress
+### [ WIP ] - This documentation is still a work in progress
 ***
 
 ### Table of contents
