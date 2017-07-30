@@ -4,15 +4,12 @@ Mini JavaScript frameworking allowing client-side routing and template rendering
 ## [ WIP ]
 
 ### Table of contents
-1. [Introduction](#Introduction)
-2. Components
+1. [Introduction](#introduction)
+2. [Components](#components)
 ⋅⋅⋅App.component(configuration: object)
 ⋅⋅⋅Component
-
-3. Controllers
-4. Routing
-5. Template rendering
-6. Hooks
+3. [Routing](#routing)
+4. [Template rendering](template-rendering)
 
 ## Introduction
 
@@ -157,3 +154,6 @@ a `Component` object is instantiated after calling the app's `component` method.
     }
   });
 ```
+## Routing
+
+## Template rendering
