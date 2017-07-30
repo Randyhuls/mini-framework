@@ -8,8 +8,8 @@ Mini JavaScript framework allowing client-side routing and template rendering
 ### Table of contents
 1. [Introduction](#introduction)
 2. [Components](#components)
-⋅⋅⋅App.component(configuration: object)
-⋅⋅⋅Component
+- App.component(configuration: object)
+- Component
 3. [Routing](#routing)
 4. [Templates](#templates)
 
